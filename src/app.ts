@@ -1,8 +1,8 @@
 import express, { Express } from 'express';
 import compression from 'compression';
-import helmet from 'helmet';
+import * as helmet from 'helmet'; // Changed to namespace import
 import { SERVER, ROUTES } from './config/constants.js';
-import { corsMiddleware, errorHandler, requestLogger,  } from './middleware.js';
+import { corsMiddleware, errorHandler, requestLogger } from './middleware.js';
 import proxyRoutes from './proxy-routes.js';
 
 /**
@@ -12,16 +12,19 @@ const app: Express = express();
 
 // Apply global middleware
 app.use(compression());
-app.use(helmet({
+
+// Fixed Helmet call for TypeScript compatibility
+const helmetMiddleware = (helmet as any).default || helmet;
+app.use(helmetMiddleware({
   contentSecurityPolicy: false // Disable CSP for proxy functionality
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Apply custom middleware
 app.use(corsMiddleware);
 app.use(requestLogger);
-
 
 // Set up routes
 app.use(ROUTES.PROXY_BASE, proxyRoutes);
