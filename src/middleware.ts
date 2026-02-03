@@ -1,21 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
-import { cors as honoCors } from 'hono/cors';
 import pino from 'pino';
-import { SERVER, PROXY, LOGGING } from './config/constants.js';
+import { PROXY, LOGGING } from './config/constants.js';
 
-// ==================== LOGGER MIDDLEWARE ====================
-
-// Create a pino logger instance
+// Serverless-safe logger configuration
 export const logger = pino.default({
   level: LOGGING.LEVEL,
-  transport: {
+  // We disable pino-pretty in production because it crashes serverless functions
+  transport: process.env.NODE_ENV !== 'production' ? {
     target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'SYS:standard',
-      ignore: 'pid,hostname',
-    },
-  },
+    options: { colorize: true }
+  } : undefined
 });
 
 /**
